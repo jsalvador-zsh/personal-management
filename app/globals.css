@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Circular Std';
+  src: url('/fonts/circular-std-medium-500.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    /* Supabase-inspired Light Theme */
+    --background: 0 0% 98.8%; /* slate1 - Gris muy claro */
+    --foreground: 206 24% 9%; /* slate12 - Texto oscuro */
+    --card: 0 0% 100%; /* Blanco puro */
+    --card-foreground: 206 24% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 206 24% 9%;
+    --primary: 158 64% 52%; /* Brand verde #3ECF8E */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 209 13.3% 95.3%; /* slate3 */
+    --secondary-foreground: 206 24% 9%;
+    --muted: 209 13.3% 95.3%; /* slate3 */
+    --muted-foreground: 206 6% 43.5%; /* slate11 - Texto secundario */
+    --accent: 209 13.3% 95.3%; /* slate3 */
+    --accent-foreground: 206 24% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 209 12.2% 93.2%; /* slate4 - Bordes sutiles */
+    --input: 209 12.2% 93.2%;
+    --ring: 158 64% 52%;
+    --radius: 0.5rem;
+
+    /* Variables adicionales estilo Supabase */
+    --background-alternative: 209 13.3% 95.3%;
+    --background-selection: 158 64% 95%;
+    --foreground-lighter: 206 6% 56.1%;
+    --border-strong: 208 11.3% 88.9%;
+    --border-stronger: 207 11.1% 85.9%;
+  }
+
+  .dark {
+    /* Supabase Dark Theme */
+    --background: 0 0% 6%; /* #0F1113 */
+    --foreground: 0 0% 98%;
+    --card: 0 0% 11%; /* #1C1C1C */
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 11%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 158 64% 52%; /* #3ECF8E */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 158 64% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  :root {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Circular Std', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    color-scheme: light;
+  }
+}
+
+
+
+/* Custom Scrollbar - Supabase Style */
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/30;
+  }
+}
+
+/* Supabase-like gradient text */
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-brand to-brand bg-clip-text text-transparent;
+  }
+}
+
+/* Custom animations */
+@layer utilities {
+  .animate-in {
+    animation: animate-in 0.2s ease-out;
+  }
+
+  @keyframes animate-in {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
