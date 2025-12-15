@@ -53,7 +53,7 @@ export default function LoginPage() {
 
       if (authData.user) {
         toast.success("¡Bienvenido de nuevo!")
-        router.push("/dashboard")
+        router.push("/inicio")
         router.refresh()
       }
     } catch (err: any) {
@@ -105,15 +105,7 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Contraseña</Label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  ¿Olvidaste tu contraseña?
-                </Link>
-              </div>
+              <Label htmlFor="password">Contraseña</Label>
               <Input
                 id="password"
                 type="password"
