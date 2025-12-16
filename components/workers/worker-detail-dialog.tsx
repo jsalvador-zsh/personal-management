@@ -36,6 +36,7 @@ import {
   FileText,
 } from "lucide-react"
 import type { Worker, Company } from "@/types"
+import { WorkerServiceCapabilities } from "./worker-service-capabilities"
 
 type WorkerWithCompany = Worker & {
   company?: Company | null
@@ -130,10 +131,11 @@ export function WorkerDetailDialog({
 
           {/* Tabs with detailed information */}
           <Tabs defaultValue="basico" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="basico">Información Básica</TabsTrigger>
               <TabsTrigger value="personal">Información Personal</TabsTrigger>
               <TabsTrigger value="profesional">Información Profesional</TabsTrigger>
+              <TabsTrigger value="capacidades">Capacidades</TabsTrigger>
             </TabsList>
 
             {/* TAB 1: Información Básica */}
@@ -441,6 +443,11 @@ export function WorkerDetailDialog({
                   </p>
                 </div>
               </div>
+            </TabsContent>
+
+            {/* TAB 4: Capacidades de Servicio */}
+            <TabsContent value="capacidades" className="mt-4">
+              <WorkerServiceCapabilities worker={worker} />
             </TabsContent>
           </Tabs>
         </div>

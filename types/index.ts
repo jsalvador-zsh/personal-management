@@ -14,6 +14,7 @@ export type AuditLog = Database['public']['Tables']['audit_logs']['Row']
 export type Notification = Database['public']['Tables']['notifications']['Row']
 export type User = Database['public']['Tables']['users']['Row']
 export type AppUser = User // Alias for consistency
+export type WorkerServiceCapability = Database['public']['Tables']['worker_service_capabilities']['Row']
 
 // Insert types
 export type WorkerInsert = Database['public']['Tables']['workers']['Insert']
@@ -29,6 +30,20 @@ export type CompanyUpdate = Database['public']['Tables']['companies']['Update']
 export type ServiceUpdate = Database['public']['Tables']['services']['Update']
 export type CourseUpdate = Database['public']['Tables']['courses']['Update']
 export type CertificationUpdate = Database['public']['Tables']['certifications']['Update']
+
+// Enum types
+export type UserRole = Database['public']['Enums']['UserRole']
+export type WorkerStatus = Database['public']['Enums']['WorkerStatus']
+export type WorkMode = Database['public']['Enums']['WorkMode']
+export type ServiceStatus = Database['public']['Enums']['ServiceStatus']
+export type CertificationStatus = Database['public']['Enums']['CertificationStatus']
+export type AssignmentStatus = Database['public']['Enums']['AssignmentStatus']
+export type EvaluationType = Database['public']['Enums']['EvaluationType']
+export type DocumentType = Database['public']['Enums']['DocumentType']
+export type NotificationType = Database['public']['Enums']['NotificationType']
+export type HomologationType = Database['public']['Enums']['HomologationType']
+export type HomologationStatus = Database['public']['Enums']['HomologationStatus']
+export type ProficiencyLevel = Database['public']['Enums']['ProficiencyLevel']
 
 // Extended types with relations
 export type WorkerWithCompany = Worker & {
