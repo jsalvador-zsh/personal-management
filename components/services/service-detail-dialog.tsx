@@ -41,12 +41,15 @@ export function ServiceDetailDialog({
   service,
 }: ServiceDetailDialogProps) {
   const [workers, setWorkers] = useState<WorkerAssignment[]>([])
+  const [availableWorkers, setAvailableWorkers] = useState<Worker[]>([])
   const [loadingWorkers, setLoadingWorkers] = useState(false)
+  const [loadingAvailable, setLoadingAvailable] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
     if (open && service) {
       fetchWorkers()
+      fetchAvailableWorkers()
     }
   }, [open, service])
 
@@ -71,6 +74,47 @@ export function ServiceDetailDialog({
       console.error("Error fetching workers:", error)
     } finally {
       setLoadingWorkers(false)
+    }
+  }
+
+  const fetchAvailableWorkers = async () => {
+    if (!service || !service.company_id) return
+
+    setLoadingAvailable(true)
+    try {
+      // Obtener IDs de trabajadores ya asignados activamente a este servicio
+      const { data: assignedData } = await supabase
+        .from("worker_services")
+        .select("worker_id")
+        .eq("service_id", service.id)
+        .eq("status", "activo")
+
+      const assignedWorkerIds = (assignedData as any)?.map((a: any) => a.worker_id) || []
+
+      // Obtener trabajadores homologados y vigentes de la misma empresa que NO estén asignados
+      let query = supabase
+        .from("workers")
+        .select("*")
+        .eq("company_id", service.company_id)
+        .eq("is_homologated", true)
+        .eq("homologation_status", "vigente")
+        .eq("status", "habilitado")
+        .order("full_name")
+
+      // Excluir trabajadores ya asignados activamente
+      if (assignedWorkerIds.length > 0) {
+        query = query.not("id", "in", `(${assignedWorkerIds.join(",")})`)
+      }
+
+      const { data, error } = await query
+
+      if (error) throw error
+
+      setAvailableWorkers(data || [])
+    } catch (error: any) {
+      console.error("Error fetching available workers:", error)
+    } finally {
+      setLoadingAvailable(false)
     }
   }
 
@@ -264,6 +308,121 @@ export function ServiceDetailDialog({
               <p className="text-sm italic text-muted-foreground">
                 No hay trabajadores asignados a este servicio
               </p>
+            )}
+          </div>
+
+          <Separator />
+
+          {/* Available Workers for Assignment */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <Users className="h-4 w-4" />
+                Trabajadores Disponibles para Asignar ({availableWorkers.length})
+              </div>
+              {service.company && (
+                <Badge variant="outline" className="text-xs">
+                  {service.company.name}
+                </Badge>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Trabajadores de la misma empresa con homologación vigente y sin asignación activa
+            </p>
+            {loadingAvailable ? (
+              <p className="text-sm italic text-muted-foreground">Cargando trabajadores disponibles...</p>
+            ) : availableWorkers.length > 0 ? (
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {availableWorkers.map((worker) => {
+                  const homologationTypeColors = {
+                    medica: "info",
+                    ocupacional: "warning",
+                    seguridad: "error",
+                    tecnica: "success",
+                    especial: "#875A7B",
+                  }
+
+                  const homologationTypeLabels = {
+                    medica: "🏥 Médica",
+                    ocupacional: "👷 Ocupacional",
+                    seguridad: "🛡️ Seguridad",
+                    tecnica: "🔧 Técnica",
+                    especial: "⭐ Especial",
+                  }
+
+                  return (
+                    <div
+                      key={worker.id}
+                      className="rounded-lg border border-success/20 bg-success/5 p-4 hover:bg-success/10 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="font-medium flex items-center gap-2">
+                            {worker.full_name}
+                            <Badge variant="success" className="text-xs">
+                              Disponible
+                            </Badge>
+                          </div>
+                          <div className="text-sm text-muted-foreground mt-1">
+                            DNI: {worker.dni} {worker.position && `• ${worker.position}`}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 mt-2">
+                            <Badge variant="success">
+                              Homologación: Vigente
+                            </Badge>
+                            {worker.homologation_type && (
+                              <>
+                                {worker.homologation_type === "especial" ? (
+                                  <span
+                                    className="text-xs font-medium px-2 py-1 rounded"
+                                    style={{ backgroundColor: "#875A7B20", color: "#875A7B" }}
+                                  >
+                                    {homologationTypeLabels[worker.homologation_type]}
+                                  </span>
+                                ) : (
+                                  <Badge variant="outline">
+                                    {homologationTypeLabels[worker.homologation_type as keyof typeof homologationTypeLabels]}
+                                  </Badge>
+                                )}
+                              </>
+                            )}
+                          </div>
+                          {worker.homologation_expiry && (
+                            <div className="text-xs text-muted-foreground mt-2">
+                              Vence: {new Date(worker.homologation_expiry).toLocaleDateString("es-PE")}
+                              {(() => {
+                                const daysUntilExpiry = Math.ceil(
+                                  (new Date(worker.homologation_expiry).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+                                )
+                                return daysUntilExpiry <= 30 ? (
+                                  <Badge variant="warning" className="ml-2 text-xs">
+                                    Vence en {daysUntilExpiry} días
+                                  </Badge>
+                                ) : null
+                              })()}
+                            </div>
+                          )}
+                          {worker.homologation_entity && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              Entidad: {worker.homologation_entity}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed p-8 text-center">
+                <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
+                <p className="text-sm font-medium text-muted-foreground">
+                  No hay trabajadores disponibles
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  No se encontraron trabajadores de esta empresa con homologación vigente
+                </p>
+              </div>
             )}
           </div>
 
