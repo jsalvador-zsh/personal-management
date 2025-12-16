@@ -10,6 +10,16 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { createClient } from "@/lib/supabase/client"
 import {
   Users,
@@ -19,7 +29,9 @@ import {
   Briefcase,
   ClipboardCheck,
   FileText,
+  Filter,
 } from "lucide-react"
+import type { Company, Service } from "@/types"
 import {
   PieChart,
   Pie,
@@ -47,6 +59,27 @@ interface DashboardStats {
   totalEvaluations: number
   totalDocuments: number
   totalCourses: number
+}
+
+interface EvaluationWithDetails {
+  id: string
+  date: string
+  evaluation_type: string
+  score: number | null
+  comments: string | null
+  worker: {
+    id: string
+    full_name: string
+    dni: string
+    position: string | null
+    company_id: string | null
+  } | null
+  evaluator: {
+    full_name: string | null
+  } | null
+  worker_services?: Array<{
+    service: Service | null
+  }> | null
 }
 
 const COLORS = {
@@ -77,9 +110,25 @@ export default function DashboardPage() {
   })
   const [loading, setLoading] = useState(true)
 
+  // Estados para la sección de evaluaciones
+  const [evaluations, setEvaluations] = useState<EvaluationWithDetails[]>([])
+  const [filteredEvaluations, setFilteredEvaluations] = useState<EvaluationWithDetails[]>([])
+  const [companies, setCompanies] = useState<Company[]>([])
+  const [services, setServices] = useState<Service[]>([])
+  const [selectedCompany, setSelectedCompany] = useState<string>("all")
+  const [selectedService, setSelectedService] = useState<string>("all")
+  const [loadingEvaluations, setLoadingEvaluations] = useState(true)
+
   useEffect(() => {
     fetchDashboardStats()
+    fetchEvaluations()
+    fetchCompanies()
+    fetchServices()
   }, [])
+
+  useEffect(() => {
+    filterEvaluations()
+  }, [selectedCompany, selectedService, evaluations])
 
   const fetchDashboardStats = async () => {
     const supabase = createClient()
@@ -135,6 +184,116 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchEvaluations = async () => {
+    const supabase = createClient()
+    setLoadingEvaluations(true)
+
+    try {
+      const { data, error } = await supabase
+        .from("evaluations")
+        .select(`
+          *,
+          worker:workers(
+            id,
+            full_name,
+            dni,
+            position,
+            company_id
+          ),
+          evaluator:users!evaluations_evaluator_id_fkey(
+            full_name
+          )
+        `)
+        .order("date", { ascending: false })
+        .limit(100)
+
+      if (error) throw error
+
+      // Para cada evaluación, obtener los servicios del trabajador
+      const evaluationsWithServices = await Promise.all(
+        ((data || []) as any).map(async (evaluation: any) => {
+          if (!evaluation.worker) return evaluation
+
+          const { data: workerServices } = await supabase
+            .from("worker_services")
+            .select(`
+              service:services(*)
+            `)
+            .eq("worker_id", evaluation.worker.id)
+            .eq("status", "activo")
+
+          return {
+            ...evaluation,
+            worker_services: workerServices || [],
+          }
+        })
+      )
+
+      setEvaluations(evaluationsWithServices as EvaluationWithDetails[])
+    } catch (error) {
+      console.error("Error fetching evaluations:", error)
+    } finally {
+      setLoadingEvaluations(false)
+    }
+  }
+
+  const fetchCompanies = async () => {
+    const supabase = createClient()
+
+    try {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("*")
+        .order("name")
+
+      if (error) throw error
+
+      setCompanies(data || [])
+    } catch (error) {
+      console.error("Error fetching companies:", error)
+    }
+  }
+
+  const fetchServices = async () => {
+    const supabase = createClient()
+
+    try {
+      const { data, error } = await supabase
+        .from("services")
+        .select("*")
+        .eq("status", "activo")
+        .order("name")
+
+      if (error) throw error
+
+      setServices(data || [])
+    } catch (error) {
+      console.error("Error fetching services:", error)
+    }
+  }
+
+  const filterEvaluations = () => {
+    let filtered = evaluations
+
+    // Filtrar por empresa
+    if (selectedCompany !== "all") {
+      filtered = filtered.filter(
+        (evaluation) => evaluation.worker?.company_id === selectedCompany
+      )
+    }
+
+    // Filtrar por servicio
+    if (selectedService !== "all") {
+      filtered = filtered.filter((evaluation) => {
+        return evaluation.worker_services?.some(
+          (ws) => ws.service?.id === selectedService
+        )
+      })
+    }
+
+    setFilteredEvaluations(filtered)
   }
 
   const workerStatusData = [
@@ -392,6 +551,158 @@ export default function DashboardPage() {
               <Bar dataKey="count" fill={COLORS.brand} name="Cantidad de Registros" />
             </BarChart>
           </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* Evaluaciones por Empresa y Servicio */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ClipboardCheck className="h-5 w-5" />
+            Evaluaciones por Empresa y Servicio
+          </CardTitle>
+          <CardDescription>
+            Filtra y visualiza evaluaciones de trabajadores según empresa y servicio asignado
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Filtros */}
+          <div className="flex items-end gap-4">
+            <div className="flex items-center gap-2">
+              <Filter className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="flex-1 grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="company-filter">Filtrar por Empresa</Label>
+                <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+                  <SelectTrigger id="company-filter">
+                    <SelectValue placeholder="Todas las empresas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas las empresas</SelectItem>
+                    {companies.map((company) => (
+                      <SelectItem key={company.id} value={company.id}>
+                        {company.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="service-filter">Filtrar por Servicio</Label>
+                <Select value={selectedService} onValueChange={setSelectedService}>
+                  <SelectTrigger id="service-filter">
+                    <SelectValue placeholder="Todos los servicios" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los servicios</SelectItem>
+                    {services.map((service) => (
+                      <SelectItem key={service.id} value={service.id}>
+                        {service.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p className="font-medium">{filteredEvaluations.length} evaluaciones</p>
+            </div>
+          </div>
+
+          {/* Tabla de Evaluaciones */}
+          {loadingEvaluations ? (
+            <div className="flex items-center justify-center py-12">
+              <p className="text-sm text-muted-foreground">Cargando evaluaciones...</p>
+            </div>
+          ) : filteredEvaluations.length > 0 ? (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Fecha de Evaluación</TableHead>
+                    <TableHead>Trabajador</TableHead>
+                    <TableHead>DNI</TableHead>
+                    <TableHead>Puesto/Cargo</TableHead>
+                    <TableHead>Servicio(s)</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Puntaje</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredEvaluations.map((evaluation) => (
+                    <TableRow key={evaluation.id}>
+                      <TableCell>
+                        {new Date(evaluation.date).toLocaleDateString("es-PE", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {evaluation.worker?.full_name || "N/A"}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">
+                        {evaluation.worker?.dni || "N/A"}
+                      </TableCell>
+                      <TableCell>
+                        {evaluation.worker?.position || (
+                          <span className="text-muted-foreground italic">Sin cargo</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {evaluation.worker_services && evaluation.worker_services.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {evaluation.worker_services.map((ws, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs">
+                                {ws.service?.name || "N/A"}
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground italic text-sm">
+                            Sin servicio asignado
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="capitalize">
+                          {evaluation.evaluation_type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {evaluation.score !== null ? (
+                          <Badge
+                            variant={
+                              evaluation.score >= 80
+                                ? "success"
+                                : evaluation.score >= 60
+                                ? "warning"
+                                : "error"
+                            }
+                          >
+                            {evaluation.score}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground italic text-sm">N/A</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed p-12 text-center">
+              <ClipboardCheck className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+              <p className="text-sm font-medium text-muted-foreground">
+                No hay evaluaciones que coincidan con los filtros
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Intenta ajustar los filtros o registra nuevas evaluaciones
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
