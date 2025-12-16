@@ -365,6 +365,37 @@ export interface Database {
           updated_at?: string
         }
       }
+      worker_service_capabilities: {
+        Row: {
+          id: string
+          worker_id: string
+          service_id: string
+          proficiency_level: ProficiencyLevel
+          years_experience: number
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          worker_id: string
+          service_id: string
+          proficiency_level?: ProficiencyLevel
+          years_experience?: number
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          worker_id?: string
+          service_id?: string
+          proficiency_level?: ProficiencyLevel
+          years_experience?: number
+          notes?: string | null
+          updated_at?: string
+        }
+      }
       evaluations: {
         Row: {
           id: string
@@ -505,6 +536,7 @@ export interface Database {
       NotificationType: 'certificacion_vencida' | 'nueva_evaluacion' | 'otro'
       HomologationType: 'medica' | 'ocupacional' | 'seguridad' | 'tecnica' | 'especial'
       HomologationStatus: 'pendiente' | 'vigente' | 'vencida' | 'suspendida'
+      ProficiencyLevel: 'basico' | 'intermedio' | 'avanzado' | 'experto'
     }
   }
 }
@@ -521,3 +553,4 @@ export type DocumentType = Database['public']['Enums']['DocumentType']
 export type NotificationType = Database['public']['Enums']['NotificationType']
 export type HomologationType = Database['public']['Enums']['HomologationType']
 export type HomologationStatus = Database['public']['Enums']['HomologationStatus']
+export type ProficiencyLevel = Database['public']['Enums']['ProficiencyLevel']

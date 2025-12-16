@@ -94,7 +94,16 @@ export function ServiceDetailDialog({
 
       const assignedWorkerIds = (assignedData as any)?.map((a: any) => a.worker_id) || []
 
-      // Obtener trabajadores homologados y vigentes de la misma empresa que NO estén asignados
+      // Obtener IDs de trabajadores que PUEDEN brindar este servicio específico
+      const { data: capableData } = await supabase
+        .from("worker_service_capabilities")
+        .select("worker_id")
+        .eq("service_id", service.id)
+
+      const capableWorkerIds = (capableData as any)?.map((c: any) => c.worker_id) || []
+
+      // Si hay capacidades definidas, filtrar solo por esos trabajadores
+      // Si no hay capacidades definidas, mostrar todos (para retrocompatibilidad)
       let query = supabase
         .from("workers")
         .select("*")
@@ -102,12 +111,18 @@ export function ServiceDetailDialog({
         .eq("is_homologated", true)
         .eq("homologation_status", "vigente")
         .eq("status", "habilitado")
-        .order("full_name")
+
+      // Filtrar por trabajadores capaces de brindar este servicio
+      if (capableWorkerIds.length > 0) {
+        query = query.in("id", capableWorkerIds)
+      }
 
       // Excluir trabajadores ya asignados activamente
       if (assignedWorkerIds.length > 0) {
         query = query.not("id", "in", `(${assignedWorkerIds.join(",")})`)
       }
+
+      query = query.order("full_name")
 
       const { data, error } = await query
 
@@ -361,7 +376,7 @@ export function ServiceDetailDialog({
               )}
             </div>
             <p className="text-xs text-muted-foreground">
-              Trabajadores de la misma empresa con homologación vigente y sin asignación activa
+              Trabajadores capacitados para brindar este servicio, con homologación vigente y sin asignación activa
             </p>
             {loadingAvailable ? (
               <p className="text-sm italic text-muted-foreground">Cargando trabajadores disponibles...</p>
@@ -465,7 +480,10 @@ export function ServiceDetailDialog({
                   No hay trabajadores disponibles
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  No se encontraron trabajadores de esta empresa con homologación vigente
+                  No se encontraron trabajadores capacitados para este servicio con homologación vigente
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Asegúrate de asignar capacidades de servicio a los trabajadores en su perfil
                 </p>
               </div>
             )}
