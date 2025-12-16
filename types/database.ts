@@ -61,6 +61,29 @@ export interface Database {
           area: string | null
           local: string | null
           condiciones_trabajo: string | null
+          // Campos de Homologación
+          is_homologated: boolean
+          homologation_type: HomologationType | null
+          homologation_date: string | null
+          homologation_expiry: string | null
+          homologation_entity: string | null
+          homologation_certificate_number: string | null
+          homologation_document_url: string | null
+          homologation_status: HomologationStatus
+          homologation_notes: string | null
+          // Campos específicos por tipo de homologación
+          medical_restrictions: string | null
+          medical_observations: string | null
+          blood_type: string | null
+          occupational_level: string | null
+          occupational_specialization: string | null
+          safety_training_hours: number | null
+          safety_certifications: string[] | null
+          technical_skills: string[] | null
+          technical_equipment_authorized: string[] | null
+          special_authorization_number: string | null
+          special_authorization_scope: string | null
+          special_restrictions: string | null
           created_at: string
           updated_at: string
         }
@@ -90,6 +113,29 @@ export interface Database {
           area?: string | null
           local?: string | null
           condiciones_trabajo?: string | null
+          // Campos de Homologación
+          is_homologated?: boolean
+          homologation_type?: HomologationType | null
+          homologation_date?: string | null
+          homologation_expiry?: string | null
+          homologation_entity?: string | null
+          homologation_certificate_number?: string | null
+          homologation_document_url?: string | null
+          homologation_status?: HomologationStatus
+          homologation_notes?: string | null
+          // Campos específicos por tipo de homologación
+          medical_restrictions?: string | null
+          medical_observations?: string | null
+          blood_type?: string | null
+          occupational_level?: string | null
+          occupational_specialization?: string | null
+          safety_training_hours?: number | null
+          safety_certifications?: string[] | null
+          technical_skills?: string[] | null
+          technical_equipment_authorized?: string[] | null
+          special_authorization_number?: string | null
+          special_authorization_scope?: string | null
+          special_restrictions?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -119,6 +165,29 @@ export interface Database {
           area?: string | null
           local?: string | null
           condiciones_trabajo?: string | null
+          // Campos de Homologación
+          is_homologated?: boolean
+          homologation_type?: HomologationType | null
+          homologation_date?: string | null
+          homologation_expiry?: string | null
+          homologation_entity?: string | null
+          homologation_certificate_number?: string | null
+          homologation_document_url?: string | null
+          homologation_status?: HomologationStatus
+          homologation_notes?: string | null
+          // Campos específicos por tipo de homologación
+          medical_restrictions?: string | null
+          medical_observations?: string | null
+          blood_type?: string | null
+          occupational_level?: string | null
+          occupational_specialization?: string | null
+          safety_training_hours?: number | null
+          safety_certifications?: string[] | null
+          technical_skills?: string[] | null
+          technical_equipment_authorized?: string[] | null
+          special_authorization_number?: string | null
+          special_authorization_scope?: string | null
+          special_restrictions?: string | null
           updated_at?: string
         }
       }
@@ -434,6 +503,8 @@ export interface Database {
       EvaluationType: 'admin' | 'medico' | 'rrhh'
       DocumentType: 'certificado' | 'contrato' | 'orden_servicio' | 'otro'
       NotificationType: 'certificacion_vencida' | 'nueva_evaluacion' | 'otro'
+      HomologationType: 'medica' | 'ocupacional' | 'seguridad' | 'tecnica' | 'especial'
+      HomologationStatus: 'pendiente' | 'vigente' | 'vencida' | 'suspendida'
     }
   }
 }
@@ -448,3 +519,5 @@ export type AssignmentStatus = Database['public']['Enums']['AssignmentStatus']
 export type EvaluationType = Database['public']['Enums']['EvaluationType']
 export type DocumentType = Database['public']['Enums']['DocumentType']
 export type NotificationType = Database['public']['Enums']['NotificationType']
+export type HomologationType = Database['public']['Enums']['HomologationType']
+export type HomologationStatus = Database['public']['Enums']['HomologationStatus']

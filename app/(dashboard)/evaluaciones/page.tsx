@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Label } from "@/components/ui/label"
 import {
   Dialog,
   DialogContent,
@@ -12,14 +13,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Plus, ClipboardCheck, Loader2, Users, TrendingUp, Award, BarChart3 } from "lucide-react"
+import { Plus, ClipboardCheck, Loader2, Users, TrendingUp, Award, BarChart3, Building2 } from "lucide-react"
 import { EvaluationTable } from "@/components/evaluations/evaluation-table"
 import { EvaluationFormDialog } from "@/components/evaluations/evaluation-form-dialog"
 import { EvaluationDetailDialog, type EvaluationWithDetails } from "@/components/evaluations/evaluation-detail-dialog"
 import { createClient } from "@/lib/supabase/client"
-import type { Evaluation } from "@/types"
+import type { Evaluation, Company } from "@/types"
 import type { EvaluationFormData } from "@/lib/validations/evaluation"
 import { toast } from "sonner"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   PieChart,
   Pie,
@@ -57,6 +65,9 @@ const COLORS = {
 
 export default function EvaluacionesPage() {
   const [evaluations, setEvaluations] = useState<EvaluationWithDetails[]>([])
+  const [filteredEvaluations, setFilteredEvaluations] = useState<EvaluationWithDetails[]>([])
+  const [companies, setCompanies] = useState<Company[]>([])
+  const [selectedCompany, setSelectedCompany] = useState<string>("all")
   const [stats, setStats] = useState<EvaluationStats>({
     totalEvaluations: 0,
     totalWorkers: 0,
@@ -79,9 +90,39 @@ export default function EvaluacionesPage() {
   const supabase = createClient()
 
   useEffect(() => {
+    fetchCompanies()
     fetchData()
     fetchStats()
   }, [])
+
+  useEffect(() => {
+    filterEvaluations()
+  }, [selectedCompany, evaluations])
+
+  const fetchCompanies = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("*")
+        .order("name")
+
+      if (error) throw error
+      setCompanies(data || [])
+    } catch (error: any) {
+      console.error("Error fetching companies:", error)
+    }
+  }
+
+  const filterEvaluations = () => {
+    if (selectedCompany === "all") {
+      setFilteredEvaluations(evaluations)
+    } else {
+      const filtered = evaluations.filter(
+        (evaluation) => evaluation.worker?.company_id === selectedCompany
+      )
+      setFilteredEvaluations(filtered)
+    }
+  }
 
   const fetchData = async () => {
     setLoading(true)
@@ -292,6 +333,39 @@ export default function EvaluacionesPage() {
         </Button>
       </div>
 
+      {/* Company Filter */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-4">
+            <Building2 className="h-5 w-5 text-muted-foreground" />
+            <div className="flex-1">
+              <Label htmlFor="company-filter" className="text-sm font-medium">
+                Filtrar por Empresa
+              </Label>
+              <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+                <SelectTrigger id="company-filter" className="mt-2">
+                  <SelectValue placeholder="Seleccione una empresa" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las empresas</SelectItem>
+                  {companies.map((company) => (
+                    <SelectItem key={company.id} value={company.id}>
+                      {company.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p className="font-medium">{filteredEvaluations.length} evaluaciones</p>
+              <p className="text-xs">
+                {selectedCompany === "all" ? "Total del sistema" : "De la empresa seleccionada"}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* KPI Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {/* Total Evaluations */}
@@ -428,12 +502,12 @@ export default function EvaluacionesPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ClipboardCheck className="h-5 w-5" />
-            Lista de Evaluaciones ({evaluations.length})
+            Lista de Evaluaciones ({filteredEvaluations.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
           <EvaluationTable
-            data={evaluations}
+            data={filteredEvaluations}
             onView={openViewDialog}
             onEdit={openEditDialog}
             onDelete={openDeleteDialog}
