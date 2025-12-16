@@ -11,17 +11,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Plus, Briefcase, Loader2 } from "lucide-react"
+import { Plus, Briefcase, Loader2, Building2 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 import { ServiceTable } from "@/components/services/service-table"
 import { ServiceFormDialog } from "@/components/services/service-form-dialog"
 import { ServiceDetailDialog, type ServiceWithDetails } from "@/components/services/service-detail-dialog"
 import { createClient } from "@/lib/supabase/client"
-import type { Service } from "@/types"
+import type { Service, Company } from "@/types"
 import type { ServiceFormData } from "@/lib/validations/service"
 import { toast } from "sonner"
 
 export default function ServiciosPage() {
   const [services, setServices] = useState<ServiceWithDetails[]>([])
+  const [filteredServices, setFilteredServices] = useState<ServiceWithDetails[]>([])
+  const [companies, setCompanies] = useState<Company[]>([])
+  const [selectedCompany, setSelectedCompany] = useState<string>("all")
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
 
@@ -37,7 +42,12 @@ export default function ServiciosPage() {
 
   useEffect(() => {
     fetchData()
+    fetchCompanies()
   }, [])
+
+  useEffect(() => {
+    filterServices()
+  }, [selectedCompany, services])
 
   const fetchData = async () => {
     setLoading(true)
@@ -59,6 +69,32 @@ export default function ServiciosPage() {
       toast.error("Error al cargar los servicios")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchCompanies = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("*")
+        .order("name")
+
+      if (error) throw error
+
+      setCompanies(data || [])
+    } catch (error: any) {
+      console.error("Error fetching companies:", error)
+    }
+  }
+
+  const filterServices = () => {
+    if (selectedCompany === "all") {
+      setFilteredServices(services)
+    } else {
+      const filtered = services.filter(
+        (service) => service.company_id === selectedCompany
+      )
+      setFilteredServices(filtered)
     }
   }
 
@@ -190,16 +226,44 @@ export default function ServiciosPage() {
         </Button>
       </div>
 
+      {/* Company Filter */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-4">
+            <Building2 className="h-5 w-5 text-muted-foreground" />
+            <div className="flex-1">
+              <Label htmlFor="company-filter">Filtrar por Empresa</Label>
+              <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+                <SelectTrigger id="company-filter" className="mt-2">
+                  <SelectValue placeholder="Seleccione una empresa" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las empresas</SelectItem>
+                  {companies.map((company) => (
+                    <SelectItem key={company.id} value={company.id}>
+                      {company.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p className="font-medium">{filteredServices.length} servicios</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Briefcase className="h-5 w-5" />
-            Lista de Servicios ({services.length})
+            Lista de Servicios ({filteredServices.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
           <ServiceTable
-            data={services}
+            data={filteredServices}
             onView={openViewDialog}
             onEdit={openEditDialog}
             onDelete={openDeleteDialog}
