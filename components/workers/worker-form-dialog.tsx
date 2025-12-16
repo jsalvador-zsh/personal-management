@@ -168,10 +168,11 @@ export function WorkerFormDialog({
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
           <Tabs defaultValue="basico" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="basico">Información Básica</TabsTrigger>
               <TabsTrigger value="personal">Información Personal</TabsTrigger>
               <TabsTrigger value="profesional">Información Profesional</TabsTrigger>
+              <TabsTrigger value="homologacion">Homologación</TabsTrigger>
             </TabsList>
 
             {/* TAB 1: Información Básica */}
@@ -542,6 +543,308 @@ export function WorkerFormDialog({
                   {errors.condiciones_trabajo && (
                     <p className="text-sm text-error">{errors.condiciones_trabajo.message}</p>
                   )}
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* TAB 4: Homologación */}
+            <TabsContent value="homologacion" className="space-y-6">
+              <div className="space-y-6">
+                {/* Estado y Tipo de Homologación */}
+                <div className="grid gap-6 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="is_homologated">¿Está Homologado?</Label>
+                    <Select
+                      value={watch("is_homologated") ? "true" : "false"}
+                      onValueChange={(value) => setValue("is_homologated", value === "true")}
+                      disabled={isLoading}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="false">No</SelectItem>
+                        <SelectItem value="true">Sí</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="homologation_type">Tipo de Homologación</Label>
+                    <Select
+                      value={watch("homologation_type") || "none"}
+                      onValueChange={(value) => setValue("homologation_type", value === "none" ? null : value as any)}
+                      disabled={isLoading}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sin tipo</SelectItem>
+                        <SelectItem value="medica">🏥 Médica</SelectItem>
+                        <SelectItem value="ocupacional">👷 Ocupacional</SelectItem>
+                        <SelectItem value="seguridad">🛡️ Seguridad</SelectItem>
+                        <SelectItem value="tecnica">🔧 Técnica</SelectItem>
+                        <SelectItem value="especial">⭐ Especial</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="homologation_status">Estado</Label>
+                    <Select
+                      value={watch("homologation_status") || "pendiente"}
+                      onValueChange={(value) => setValue("homologation_status", value as any)}
+                      disabled={isLoading}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pendiente">Pendiente</SelectItem>
+                        <SelectItem value="vigente">Vigente</SelectItem>
+                        <SelectItem value="vencida">Vencida</SelectItem>
+                        <SelectItem value="suspendida">Suspendida</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Fechas y Entidad */}
+                <div className="grid gap-6 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="homologation_date">Fecha de Emisión</Label>
+                    <Input
+                      id="homologation_date"
+                      type="date"
+                      {...register("homologation_date")}
+                      disabled={isLoading}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="homologation_expiry">Fecha de Vencimiento</Label>
+                    <Input
+                      id="homologation_expiry"
+                      type="date"
+                      {...register("homologation_expiry")}
+                      disabled={isLoading}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="homologation_entity">Entidad Emisora</Label>
+                    <Input
+                      id="homologation_entity"
+                      {...register("homologation_entity")}
+                      placeholder="MINSA, SUNAFIL, etc."
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+
+                {/* Certificado y Documento */}
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="homologation_certificate_number">Número de Certificado</Label>
+                    <Input
+                      id="homologation_certificate_number"
+                      {...register("homologation_certificate_number")}
+                      placeholder="CERT-2024-12345"
+                      disabled={isLoading}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="homologation_document_url">URL del Documento</Label>
+                    <Input
+                      id="homologation_document_url"
+                      {...register("homologation_document_url")}
+                      placeholder="https://ejemplo.com/certificado.pdf"
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+
+                {/* Campos Condicionales según Tipo */}
+                {watch("homologation_type") === "medica" && (
+                  <div className="space-y-4 p-4 bg-info-light/10 border border-info-light rounded-lg">
+                    <h4 className="font-semibold text-info flex items-center gap-2">
+                      <span>🏥</span> Campos Específicos: Homologación Médica
+                    </h4>
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="blood_type">Tipo de Sangre</Label>
+                        <Input
+                          id="blood_type"
+                          {...register("blood_type")}
+                          placeholder="O+, A+, B+, AB+..."
+                          disabled={isLoading}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="medical_restrictions">Restricciones Médicas</Label>
+                        <Textarea
+                          id="medical_restrictions"
+                          {...register("medical_restrictions")}
+                          placeholder="Ninguna / No puede trabajar en altura..."
+                          disabled={isLoading}
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="medical_observations">Observaciones Médicas</Label>
+                        <Textarea
+                          id="medical_observations"
+                          {...register("medical_observations")}
+                          placeholder="Observaciones adicionales..."
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {watch("homologation_type") === "ocupacional" && (
+                  <div className="space-y-4 p-4 bg-warning-light/10 border border-warning-light rounded-lg">
+                    <h4 className="font-semibold text-warning flex items-center gap-2">
+                      <span>👷</span> Campos Específicos: Homologación Ocupacional
+                    </h4>
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="occupational_level">Nivel Ocupacional</Label>
+                        <Input
+                          id="occupational_level"
+                          {...register("occupational_level")}
+                          placeholder="Operario, Técnico, Supervisor..."
+                          disabled={isLoading}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="occupational_specialization">Especialización</Label>
+                        <Input
+                          id="occupational_specialization"
+                          {...register("occupational_specialization")}
+                          placeholder="Electricidad, Mecánica..."
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {watch("homologation_type") === "seguridad" && (
+                  <div className="space-y-4 p-4 bg-error-light/10 border border-error-light rounded-lg">
+                    <h4 className="font-semibold text-error flex items-center gap-2">
+                      <span>🛡️</span> Campos Específicos: Homologación de Seguridad
+                    </h4>
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="safety_training_hours">Horas de Entrenamiento</Label>
+                        <Input
+                          id="safety_training_hours"
+                          type="number"
+                          {...register("safety_training_hours", { valueAsNumber: true })}
+                          placeholder="40"
+                          disabled={isLoading}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="safety_certifications">Certificaciones de Seguridad</Label>
+                        <Textarea
+                          id="safety_certifications"
+                          {...register("safety_certifications")}
+                          placeholder="Ingrese certificaciones separadas por comas"
+                          disabled={isLoading}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Ej: Trabajo en Altura, Espacios Confinados
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {watch("homologation_type") === "tecnica" && (
+                  <div className="space-y-4 p-4 bg-success-light/10 border border-success-light rounded-lg">
+                    <h4 className="font-semibold text-success flex items-center gap-2">
+                      <span>🔧</span> Campos Específicos: Homologación Técnica
+                    </h4>
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="technical_skills">Habilidades Técnicas</Label>
+                        <Textarea
+                          id="technical_skills"
+                          {...register("technical_skills")}
+                          placeholder="Ingrese habilidades separadas por comas"
+                          disabled={isLoading}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Ej: Soldadura TIG, Torneado CNC
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="technical_equipment_authorized">Equipos Autorizados</Label>
+                        <Textarea
+                          id="technical_equipment_authorized"
+                          {...register("technical_equipment_authorized")}
+                          placeholder="Ingrese equipos separados por comas"
+                          disabled={isLoading}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Ej: Excavadora CAT 320, Grúa Liebherr LTM 1100
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {watch("homologation_type") === "especial" && (
+                  <div className="space-y-4 p-4 border rounded-lg" style={{ backgroundColor: "#875A7B20", borderColor: "#875A7B" }}>
+                    <h4 className="font-semibold flex items-center gap-2" style={{ color: "#875A7B" }}>
+                      <span>⭐</span> Campos Específicos: Homologación Especial
+                    </h4>
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="special_authorization_number">Número de Autorización</Label>
+                        <Input
+                          id="special_authorization_number"
+                          {...register("special_authorization_number")}
+                          placeholder="AUTH-SPEC-2024-001"
+                          disabled={isLoading}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="special_authorization_scope">Alcance de Autorización</Label>
+                        <Textarea
+                          id="special_authorization_scope"
+                          {...register("special_authorization_scope")}
+                          placeholder="Describir el alcance de la autorización especial..."
+                          disabled={isLoading}
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="special_restrictions">Restricciones Especiales</Label>
+                        <Textarea
+                          id="special_restrictions"
+                          {...register("special_restrictions")}
+                          placeholder="Restricciones aplicables..."
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Notas generales */}
+                <div className="space-y-2">
+                  <Label htmlFor="homologation_notes">Notas Adicionales</Label>
+                  <Textarea
+                    id="homologation_notes"
+                    {...register("homologation_notes")}
+                    placeholder="Notas u observaciones adicionales sobre la homologación..."
+                    disabled={isLoading}
+                    rows={3}
+                  />
                 </div>
               </div>
             </TabsContent>

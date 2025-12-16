@@ -28,6 +28,39 @@ export const workerSchema = z.object({
   area: z.string().max(100).optional().nullable(),
   local: z.string().max(100).optional().nullable(),
   condiciones_trabajo: z.string().max(100).optional().nullable(),
+
+  // Campos de Homologación
+  is_homologated: z.boolean().default(false),
+  homologation_type: z.enum(["medica", "ocupacional", "seguridad", "tecnica", "especial"]).optional().nullable(),
+  homologation_date: z.string().optional().nullable(), // ISO date string
+  homologation_expiry: z.string().optional().nullable(), // ISO date string
+  homologation_entity: z.string().max(255).optional().nullable(),
+  homologation_certificate_number: z.string().max(100).optional().nullable(),
+  homologation_document_url: z.string().url("URL inválida").optional().or(z.literal("")).nullable(),
+  homologation_status: z.enum(["pendiente", "vigente", "vencida", "suspendida"]).default("pendiente"),
+  homologation_notes: z.string().optional().nullable(),
+
+  // Campos específicos para homologación médica
+  medical_restrictions: z.string().optional().nullable(),
+  medical_observations: z.string().optional().nullable(),
+  blood_type: z.string().max(10).optional().nullable(),
+
+  // Campos específicos para homologación ocupacional
+  occupational_level: z.string().max(50).optional().nullable(),
+  occupational_specialization: z.string().max(100).optional().nullable(),
+
+  // Campos específicos para homologación de seguridad
+  safety_training_hours: z.number().int().min(0).optional().nullable(),
+  safety_certifications: z.array(z.string()).optional().nullable(),
+
+  // Campos específicos para homologación técnica
+  technical_skills: z.array(z.string()).optional().nullable(),
+  technical_equipment_authorized: z.array(z.string()).optional().nullable(),
+
+  // Campos específicos para homologación especial
+  special_authorization_number: z.string().max(100).optional().nullable(),
+  special_authorization_scope: z.string().optional().nullable(),
+  special_restrictions: z.string().optional().nullable(),
 })
 
 export type WorkerFormData = z.infer<typeof workerSchema>

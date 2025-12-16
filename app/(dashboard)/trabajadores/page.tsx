@@ -103,6 +103,39 @@ export default function TrabajadoresPage() {
         area: data.area || null,
         local: data.local || null,
         condiciones_trabajo: data.condiciones_trabajo || null,
+
+        // Campos de Homologación
+        is_homologated: data.is_homologated || false,
+        homologation_type: data.homologation_type || null,
+        homologation_date: data.homologation_date || null,
+        homologation_expiry: data.homologation_expiry || null,
+        homologation_entity: data.homologation_entity || null,
+        homologation_certificate_number: data.homologation_certificate_number || null,
+        homologation_document_url: data.homologation_document_url || null,
+        homologation_status: data.homologation_status || "pendiente",
+        homologation_notes: data.homologation_notes || null,
+
+        // Campos específicos para homologación médica
+        medical_restrictions: data.medical_restrictions || null,
+        medical_observations: data.medical_observations || null,
+        blood_type: data.blood_type || null,
+
+        // Campos específicos para homologación ocupacional
+        occupational_level: data.occupational_level || null,
+        occupational_specialization: data.occupational_specialization || null,
+
+        // Campos específicos para homologación de seguridad
+        safety_training_hours: data.safety_training_hours || null,
+        safety_certifications: data.safety_certifications || null,
+
+        // Campos específicos para homologación técnica
+        technical_skills: data.technical_skills || null,
+        technical_equipment_authorized: data.technical_equipment_authorized || null,
+
+        // Campos específicos para homologación especial
+        special_authorization_number: data.special_authorization_number || null,
+        special_authorization_scope: data.special_authorization_scope || null,
+        special_restrictions: data.special_restrictions || null,
       }
 
       console.log("Creating worker with data:", workerData)
@@ -173,6 +206,39 @@ export default function TrabajadoresPage() {
         area: data.area || null,
         local: data.local || null,
         condiciones_trabajo: data.condiciones_trabajo || null,
+
+        // Campos de Homologación
+        is_homologated: data.is_homologated || false,
+        homologation_type: data.homologation_type || null,
+        homologation_date: data.homologation_date || null,
+        homologation_expiry: data.homologation_expiry || null,
+        homologation_entity: data.homologation_entity || null,
+        homologation_certificate_number: data.homologation_certificate_number || null,
+        homologation_document_url: data.homologation_document_url || null,
+        homologation_status: data.homologation_status || "pendiente",
+        homologation_notes: data.homologation_notes || null,
+
+        // Campos específicos para homologación médica
+        medical_restrictions: data.medical_restrictions || null,
+        medical_observations: data.medical_observations || null,
+        blood_type: data.blood_type || null,
+
+        // Campos específicos para homologación ocupacional
+        occupational_level: data.occupational_level || null,
+        occupational_specialization: data.occupational_specialization || null,
+
+        // Campos específicos para homologación de seguridad
+        safety_training_hours: data.safety_training_hours || null,
+        safety_certifications: data.safety_certifications || null,
+
+        // Campos específicos para homologación técnica
+        technical_skills: data.technical_skills || null,
+        technical_equipment_authorized: data.technical_equipment_authorized || null,
+
+        // Campos específicos para homologación especial
+        special_authorization_number: data.special_authorization_number || null,
+        special_authorization_scope: data.special_authorization_scope || null,
+        special_restrictions: data.special_restrictions || null,
       }
 
       const { error } = await (supabase
