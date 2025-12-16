@@ -581,11 +581,11 @@ export function WorkerFormDialog({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Sin tipo</SelectItem>
-                        <SelectItem value="medica">🏥 Médica</SelectItem>
-                        <SelectItem value="ocupacional">👷 Ocupacional</SelectItem>
-                        <SelectItem value="seguridad">🛡️ Seguridad</SelectItem>
-                        <SelectItem value="tecnica">🔧 Técnica</SelectItem>
-                        <SelectItem value="especial">⭐ Especial</SelectItem>
+                        <SelectItem value="medica">Médica</SelectItem>
+                        <SelectItem value="ocupacional">Ocupacional</SelectItem>
+                        <SelectItem value="seguridad">Seguridad</SelectItem>
+                        <SelectItem value="tecnica">Técnica</SelectItem>
+                        <SelectItem value="especial">Especial</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

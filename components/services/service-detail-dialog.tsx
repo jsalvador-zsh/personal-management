@@ -9,9 +9,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { Building2, User, FileText, Activity, Users } from "lucide-react"
+import { Building2, User, FileText, Activity, Users, UserPlus } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { toast } from "sonner"
 import type { Service, Company, User as AppUser, Worker } from "@/types"
 
 export type ServiceWithDetails = Service & {
@@ -44,6 +46,7 @@ export function ServiceDetailDialog({
   const [availableWorkers, setAvailableWorkers] = useState<Worker[]>([])
   const [loadingWorkers, setLoadingWorkers] = useState(false)
   const [loadingAvailable, setLoadingAvailable] = useState(false)
+  const [assigningWorker, setAssigningWorker] = useState<string | null>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -115,6 +118,37 @@ export function ServiceDetailDialog({
       console.error("Error fetching available workers:", error)
     } finally {
       setLoadingAvailable(false)
+    }
+  }
+
+  const handleAssignWorker = async (workerId: string) => {
+    if (!service) return
+
+    setAssigningWorker(workerId)
+    try {
+      const assignmentData = {
+        worker_id: workerId,
+        service_id: service.id,
+        start_date: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
+        status: "activo",
+      }
+
+      const { error } = await (supabase
+        .from("worker_services") as any)
+        .insert(assignmentData)
+
+      if (error) throw error
+
+      toast.success("Trabajador asignado exitosamente")
+
+      // Recargar ambas listas
+      await fetchWorkers()
+      await fetchAvailableWorkers()
+    } catch (error: any) {
+      console.error("Error assigning worker:", error)
+      toast.error("Error al asignar el trabajador")
+    } finally {
+      setAssigningWorker(null)
     }
   }
 
@@ -232,11 +266,11 @@ export function ServiceDetailDialog({
                   }
 
                   const homologationTypeLabels = {
-                    medica: "🏥 Médica",
-                    ocupacional: "👷 Ocupacional",
-                    seguridad: "🛡️ Seguridad",
-                    tecnica: "🔧 Técnica",
-                    especial: "⭐ Especial",
+                    medica: "Médica",
+                    ocupacional: "Ocupacional",
+                    seguridad: "Seguridad",
+                    tecnica: "Técnica",
+                    especial: "Especial",
                   }
 
                   const homologationStatusColors = {
@@ -343,11 +377,11 @@ export function ServiceDetailDialog({
                   }
 
                   const homologationTypeLabels = {
-                    medica: "🏥 Médica",
-                    ocupacional: "👷 Ocupacional",
-                    seguridad: "🛡️ Seguridad",
-                    tecnica: "🔧 Técnica",
-                    especial: "⭐ Especial",
+                    medica: "Médica",
+                    ocupacional: "Ocupacional",
+                    seguridad: "Seguridad",
+                    tecnica: "Técnica",
+                    especial: "Especial",
                   }
 
                   return (
@@ -407,6 +441,17 @@ export function ServiceDetailDialog({
                               Entidad: {worker.homologation_entity}
                             </div>
                           )}
+                        </div>
+                        <div className="flex-shrink-0">
+                          <Button
+                            size="sm"
+                            onClick={() => handleAssignWorker(worker.id)}
+                            disabled={assigningWorker === worker.id}
+                            className="gap-2"
+                          >
+                            <UserPlus className="h-4 w-4" />
+                            {assigningWorker === worker.id ? "Asignando..." : "Asignar"}
+                          </Button>
                         </div>
                       </div>
                     </div>
